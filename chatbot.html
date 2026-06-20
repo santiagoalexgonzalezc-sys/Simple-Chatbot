@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Simple AI Chatbot</title>
+  <title>Learning AI Chatbot</title>
   <style>
     body {
       font-family: Arial;
@@ -14,8 +14,8 @@
     }
 
     #chat {
-      width: 400px;
-      height: 400px;
+      width: 450px;
+      height: 420px;
       border: 1px solid #444;
       padding: 10px;
       overflow-y: auto;
@@ -23,7 +23,7 @@
     }
 
     input {
-      width: 300px;
+      width: 320px;
       padding: 10px;
       margin-top: 10px;
     }
@@ -35,46 +35,79 @@
 
     .user { color: #4af; }
     .bot { color: #6f6; }
+    .teach { color: #ffcc00; }
   </style>
 </head>
 <body>
 
-<h2>Simple AI Chatbot 🤖</h2>
+<h2>Learning AI Chatbot 🤖</h2>
 
 <div id="chat"></div>
 
-<input id="input" placeholder="Say something..." />
+<input id="input" placeholder="Ask or teach: e.g. 'learn: cats are cute = yes they are'" />
 <button onclick="sendMessage()">Send</button>
 
 <script>
+
+// 🧠 Load memory from browser
+let memory = JSON.parse(localStorage.getItem("aiMemory") || "{}");
+
+// 💾 Save memory
+function saveMemory() {
+  localStorage.setItem("aiMemory", JSON.stringify(memory));
+}
+
+// 🤖 Bot brain
 function botReply(input) {
   input = input.toLowerCase();
 
-  // 🤖 basic "AI brain"
-  if (input.includes("hello") || input.includes("hi")) {
-    return "Hello! 👋";
+  // 🧠 TEACHING MODE
+  // format: learn: question = answer
+  if (input.startsWith("learn:")) {
+    let parts = input.replace("learn:", "").split("=");
+
+    if (parts.length < 2) {
+      return "Format: learn: question = answer";
+    }
+
+    let question = parts[0].trim();
+    let answer = parts[1].trim();
+
+    memory[question] = answer;
+    saveMemory();
+
+    return "Got it! I learned: \"" + question + "\"";
   }
 
-  if (input.includes("how are you")) {
-    return "I'm just code, but I'm doing great!";
+  // 🧠 CHECK MEMORY FIRST
+  if (memory[input]) {
+    return memory[input];
+  }
+
+  // 🌟 BASIC KNOWLEDGE
+  if (input.includes("hello") || input.includes("hi")) {
+    return "Hello! 👋 I can learn new things now!";
   }
 
   if (input.includes("your name")) {
-    return "I'm a simple AI chatbot.";
+    return "I'm a learning AI chatbot 🤖";
   }
 
-  if (input.includes("bye")) {
-    return "Goodbye! 👋";
+  if (input.includes("joke")) {
+    const jokes = [
+      "Why do programmers hate nature? Too many bugs 🐛",
+      "Why did the computer break up? It had too many issues 💔",
+      "Why was the JS file sad? It felt undefined 😭"
+    ];
+    return jokes[Math.floor(Math.random() * jokes.length)];
   }
 
-  // random fallback
-  const fallback = [
-    "I don't understand that yet.",
-    "Try saying something else.",
-    "Hmm... I'm not smart enough for that yet."
-  ];
+  if (input.includes("time")) {
+    return "Current time: " + new Date().toLocaleTimeString();
+  }
 
-  return fallback[Math.floor(Math.random() * fallback.length)];
+  // ❓ UNKNOWN
+  return "I don't know that yet 🤔 Teach me using: learn: question = answer";
 }
 
 function sendMessage() {
@@ -87,11 +120,18 @@ function sendMessage() {
   chat.innerHTML += `<div class="user">You: ${userText}</div>`;
 
   const reply = botReply(userText);
-  chat.innerHTML += `<div class="bot">Bot: ${reply}</div>`;
+
+  // highlight teaching messages
+  if (userText.startsWith("learn:")) {
+    chat.innerHTML += `<div class="teach">Bot: ${reply}</div>`;
+  } else {
+    chat.innerHTML += `<div class="bot">Bot: ${reply}</div>`;
+  }
 
   inputBox.value = "";
   chat.scrollTop = chat.scrollHeight;
 }
+
 </script>
 
 </body>
